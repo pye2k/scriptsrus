@@ -42,7 +42,7 @@ sunset_min = parsed_json['sun_phase']['sunset']['minute']
 
 # have all the info we need to write the crontab
 #cron = CronTab(tabfile='output.tab') # from a file, for testing
-cron = CronTab(user = True)
+cron = CronTab(tabfile='/etc/crontab', user=False)
 # find the job by comment
 comment = 'motion IR adjustment - AUTOMAGIC, DO NOT EDIT'
 iter = cron.find_comment(comment)
@@ -52,15 +52,17 @@ for job in iter:
 # remove all matches
 cron.remove_all(comment=comment)
 # create a new job to turn on IR
-on_job = cron.new(command='/etc/motion/ir_control on > /dev/null 2>&1', comment=comment)
+on_job = cron.new(command='/etc/motion/ir_control on > /dev/null 2>&1', comment=comment, user='root')
 on_job.hour.on(sunset_hr)
 on_job.minute.on(sunset_min)
+print 'Set IR control to ON at: ' + sunset_hr + ':' + sunset_min
 
 # create a new job to turn off IR
-off_job = cron.new(command='/etc/motion/ir_control off > /dev/null 2>&1', comment=comment)
+off_job = cron.new(command='/etc/motion/ir_control off > /dev/null 2>&1', comment=comment, user='root')
 off_job.hour.on(sunrise_hr)
 off_job.minute.on(sunrise_min)
+print 'Set IR control to OFF at: ' + sunrise_hr + ':' + sunrise_min
 
 # write the cron
 #cron.write('output.tab') # to a file, for testing
-cron.write_to_user(user = True)
+cron.write('/etc/crontab')
